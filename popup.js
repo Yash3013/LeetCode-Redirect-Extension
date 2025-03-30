@@ -42,14 +42,24 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   goButton.addEventListener("click", redirectToProblem);
-
   inputField.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
       redirectToProblem();
     }
   });
 
-  potdButton.addEventListener("click", function () {
-    chrome.tabs.create({ url: "https://leetcode.com/problem-of-the-day/" });
+  potdButton.addEventListener("click", async function () {
+    let today = new Date().toISOString().split("T")[0];
+    try {
+      const dailyResponse = await fetch("https://leetcode.com/api/daily-challenge");
+      const dailyData = await dailyResponse.json();
+      
+      let problemSlug = dailyData.today_question.question__title_slug;
+      let url = `https://leetcode.com/problems/${problemSlug}/description/?envType=daily-question&envId=${today}`;
+      chrome.tabs.create({ url: url });
+    } catch (error) {
+      console.error("Error fetching daily challenge:", error);
+      alert("Failed to retrieve the daily challenge. Try again later.");
+    }
   });
 });
