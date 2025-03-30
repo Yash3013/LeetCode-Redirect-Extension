@@ -3,6 +3,7 @@ let problemData = null;
 document.addEventListener("DOMContentLoaded", async function () {
   const inputField = document.getElementById("problemNumber");
   const goButton = document.getElementById("goButton");
+  const potdButton = document.getElementById("potdButton");
 
   inputField.focus(); 
 
@@ -46,5 +47,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (event.key === "Enter") {
       redirectToProblem();
     }
+  });
+
+  potdButton.addEventListener("click", function () {
+    chrome.tabs.create({ url: "https://leetcode.com/problem-of-the-day/" });
   });
 });
