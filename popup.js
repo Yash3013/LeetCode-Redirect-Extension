@@ -10,34 +10,27 @@ document.addEventListener("DOMContentLoaded", async function () {
   async function fetchProblemData() {
     try {
       const response = await fetch("https://leetcode.com/api/problems/all/");
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Invalid response format: Not JSON");
-      }
       const data = await response.json();
       return data.stat_status_pairs;
     } catch (error) {
       console.error("Error preloading problem data:", error);
-      alert("Failed to retrieve problem data. Try again later.");
       return null;
     }
   }
 
+  // Preload problem data
   problemData = await fetchProblemData();
 
   async function redirectToProblem() {
     let problemNumber = inputField.value.trim();
     if (problemNumber) {
       try {
-        let problems = problemData;
+        // If preload failed earlier, try again on demand
+        let problems = problemData || await fetchProblemData();
         if (!problems) {
-          problems = await fetchProblemData();
+          alert("Failed to retrieve problem data. Try again later.");
+          return;
         }
-        if (!problems) return;
-
         let problem = problems.find(p => p.stat.frontend_question_id === parseInt(problemNumber));
         if (problem) {
           let problemSlug = problem.stat.question__title_slug;
@@ -78,22 +71,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Referer": "https://leetcode.com",
-          "Origin": "https://leetcode.com",
-          "User-Agent": navigator.userAgent
+          "Referer": "https://leetcode.com"
         },
         body: JSON.stringify(graphqlQuery)
       });
-
-      if (!dailyResponse.ok) {
-        throw new Error(`HTTP error! Status: ${dailyResponse.status}`);
-      }
-      const contentType = dailyResponse.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Invalid response format: Not JSON");
-      }
+      
       const dailyData = await dailyResponse.json();
-
+      
       if (
         dailyData &&
         dailyData.data &&
