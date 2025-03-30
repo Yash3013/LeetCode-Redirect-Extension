@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const goButton = document.getElementById("goButton");
   const potdButton = document.getElementById("potdButton");
 
-  inputField.focus(); 
+  inputField.focus();
 
   try {
     const response = await fetch("https://leetcode.com/api/problems/all/");
@@ -51,12 +51,41 @@ document.addEventListener("DOMContentLoaded", async function () {
   potdButton.addEventListener("click", async function () {
     let today = new Date().toISOString().split("T")[0];
     try {
-      const dailyResponse = await fetch("https://leetcode.com/api/daily-challenge");
+      const graphqlQuery = {
+        query: `query questionOfToday {
+          activeDailyCodingChallengeQuestion {
+            question {
+              titleSlug
+            }
+          }
+        }`
+      };
+
+      const dailyResponse = await fetch("https://leetcode.com/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Referer": "https://leetcode.com"
+        },
+        body: JSON.stringify(graphqlQuery)
+      });
+      
       const dailyData = await dailyResponse.json();
       
-      let problemSlug = dailyData.today_question.question__title_slug;
-      let url = `https://leetcode.com/problems/${problemSlug}/description/?envType=daily-question&envId=${today}`;
-      chrome.tabs.create({ url: url });
+      if (
+        dailyData &&
+        dailyData.data &&
+        dailyData.data.activeDailyCodingChallengeQuestion &&
+        dailyData.data.activeDailyCodingChallengeQuestion.question &&
+        dailyData.data.activeDailyCodingChallengeQuestion.question.titleSlug
+      ) {
+        let problemSlug = dailyData.data.activeDailyCodingChallengeQuestion.question.titleSlug;
+        let url = `https://leetcode.com/problems/${problemSlug}/description/?envType=daily-question&envId=${today}`;
+        chrome.tabs.create({ url: url });
+      } else {
+        console.error("Daily challenge data not found:", dailyData);
+        alert("Failed to retrieve the daily challenge. Try again later.");
+      }
     } catch (error) {
       console.error("Error fetching daily challenge:", error);
       alert("Failed to retrieve the daily challenge. Try again later.");
