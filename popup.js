@@ -18,14 +18,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
-  // Preload problem data
   problemData = await fetchProblemData();
 
   async function redirectToProblem() {
     let problemNumber = inputField.value.trim();
     if (problemNumber) {
       try {
-        // If preload failed earlier, try again on demand
         let problems = problemData || await fetchProblemData();
         if (!problems) {
           alert("Failed to retrieve problem data. Try again later.");
@@ -54,7 +52,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-  potdButton.addEventListener("click", async function () {
+  potdButton.addEventListener("click", async function (event) {
+    event.preventDefault();
+    potdButton.disabled = true;
     let today = new Date().toISOString().split("T")[0];
     try {
       const graphqlQuery = {
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       ) {
         let problemSlug = dailyData.data.activeDailyCodingChallengeQuestion.question.titleSlug;
         let url = `https://leetcode.com/problems/${problemSlug}/description/?envType=daily-question&envId=${today}`;
-        chrome.tabs.create({ url: url });
+        window.location.href = url;
       } else {
         console.error("Daily challenge data not found:", dailyData);
         alert("Failed to retrieve the daily challenge. Try again later.");
@@ -95,6 +95,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     } catch (error) {
       console.error("Error fetching daily challenge:", error);
       alert("Failed to retrieve the daily challenge. Try again later.");
+    } finally {
+      potdButton.disabled = false;
     }
   });
 });
