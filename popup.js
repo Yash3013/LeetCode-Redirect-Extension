@@ -87,7 +87,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       ) {
         let problemSlug = dailyData.data.activeDailyCodingChallengeQuestion.question.titleSlug;
         let url = `https://leetcode.com/problems/${problemSlug}/description/?envType=daily-question&envId=${today}`;
-        window.location.href = url;
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          if (tabs.length > 0) {
+            chrome.tabs.update(tabs[0].id, {url: url});
+          }
+        });
       } else {
         console.error("Daily challenge data not found:", dailyData);
         alert("Failed to retrieve the daily challenge. Try again later.");
